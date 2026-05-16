@@ -258,13 +258,13 @@
 
           <div class="stat-card">
             <p>Total Routes</p>
-            <h2>18</h2>
+            <h2>{{ routes.length }}</h2>
             <span>Active route plans</span>
           </div>
 
           <div class="stat-card">
             <p>Total Vehicles</p>
-            <h2>42</h2>
+            <h2>{{ vehicles.length }}</h2>
             <span>Registered buses</span>
           </div>
 
@@ -306,7 +306,7 @@
         <section class="stats-grid" v-if="currentUser.role === 'Supervisor'">
           <div class="stat-card">
             <p>Available Vehicles</p>
-            <h2>29</h2>
+            <h2>{{ availableVehicleCount }}</h2>
             <span>Ready for assignment</span>
           </div>
 
@@ -404,7 +404,326 @@
         </section>
       </div>
 
-      <!-- Placeholder Pages -->
+      <!-- Route Management Page -->
+      <div v-else-if="activePage === 'Routes'" class="page-panel">
+        <div class="page-title-row">
+          <div>
+            <h2>Route Management</h2>
+            <p>Create, view, and manage public transport routes.</p>
+          </div>
+
+          <span class="page-badge">Routes Module</span>
+        </div>
+
+        <div class="form-panel">
+          <h3>Add New Route</h3>
+
+          <form @submit.prevent="saveRoute">
+            <div class="form-grid">
+              <div>
+                <label class="form-label">Route Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="routeForm.routeName"
+                  placeholder="Example: Colombo - Kandy"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Start Location</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="routeForm.startLocation"
+                  placeholder="Enter start point"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">End Location</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="routeForm.endLocation"
+                  placeholder="Enter end point"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Total Distance</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="routeForm.distance"
+                  placeholder="Example: 115 km"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Estimated Time</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="routeForm.estimatedTime"
+                  placeholder="Example: 3h 30m"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Service Type</label>
+                <select class="form-select" v-model="routeForm.serviceType">
+                  <option value="">Select service type</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Express">Express</option>
+                  <option value="Semi Luxury">Semi Luxury</option>
+                  <option value="Luxury">Luxury</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Status</label>
+                <select class="form-select" v-model="routeForm.status">
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary-custom">
+                Save Route
+              </button>
+
+              <button type="button" class="btn-secondary-custom" @click="clearRouteForm">
+                Clear
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="table-panel">
+          <h3>Route List</h3>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Route Name</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Distance</th>
+                  <th>Time</th>
+                  <th>Service</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-for="route in routes" :key="route.id">
+                  <td>{{ route.id }}</td>
+                  <td>{{ route.routeName }}</td>
+                  <td>{{ route.startLocation }}</td>
+                  <td>{{ route.endLocation }}</td>
+                  <td>{{ route.distance }}</td>
+                  <td>{{ route.estimatedTime }}</td>
+                  <td>{{ route.serviceType }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      :class="route.status === 'Active' ? 'active-status' : 'inactive-status'"
+                    >
+                      {{ route.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-delete" @click="deleteRoute(route.id)">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+
+                <tr v-if="routes.length === 0">
+                  <td colspan="9" class="empty-text">
+                    No routes available.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle Management Page -->
+      <div v-else-if="activePage === 'Vehicles'" class="page-panel">
+        <div class="page-title-row">
+          <div>
+            <h2>Vehicle Management</h2>
+            <p>Add, view, and manage bus details used for depot operations.</p>
+          </div>
+
+          <span class="page-badge">Vehicles Module</span>
+        </div>
+
+        <div class="form-panel">
+          <h3>Add New Vehicle</h3>
+
+          <form @submit.prevent="saveVehicle">
+            <div class="form-grid">
+              <div>
+                <label class="form-label">Registration Number</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="vehicleForm.registrationNumber"
+                  placeholder="Example: NB-4521"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Vehicle Type</label>
+                <select class="form-select" v-model="vehicleForm.vehicleType">
+                  <option value="">Select vehicle type</option>
+                  <option value="Bus">Bus</option>
+                  <option value="Mini Bus">Mini Bus</option>
+                  <option value="Luxury Bus">Luxury Bus</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Seating Capacity</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  v-model="vehicleForm.seatingCapacity"
+                  placeholder="Example: 54"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Mileage</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="vehicleForm.mileage"
+                  placeholder="Example: 125000 km"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Fuel Type</label>
+                <select class="form-select" v-model="vehicleForm.fuelType">
+                  <option value="">Select fuel type</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Electric">Electric</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Availability Status</label>
+                <select class="form-select" v-model="vehicleForm.availabilityStatus">
+                  <option value="Available">Available</option>
+                  <option value="Assigned">Assigned</option>
+                  <option value="Unavailable">Unavailable</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Maintenance Status</label>
+                <select class="form-select" v-model="vehicleForm.maintenanceStatus">
+                  <option value="Good">Good</option>
+                  <option value="Service Due">Service Due</option>
+                  <option value="Under Maintenance">Under Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary-custom">
+                Save Vehicle
+              </button>
+
+              <button type="button" class="btn-secondary-custom" @click="clearVehicleForm">
+                Clear
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="table-panel">
+          <h3>Vehicle List</h3>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Registration No</th>
+                  <th>Type</th>
+                  <th>Capacity</th>
+                  <th>Mileage</th>
+                  <th>Fuel</th>
+                  <th>Availability</th>
+                  <th>Maintenance</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-for="vehicle in vehicles" :key="vehicle.id">
+                  <td>{{ vehicle.id }}</td>
+                  <td>{{ vehicle.registrationNumber }}</td>
+                  <td>{{ vehicle.vehicleType }}</td>
+                  <td>{{ vehicle.seatingCapacity }}</td>
+                  <td>{{ vehicle.mileage }}</td>
+                  <td>{{ vehicle.fuelType }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      :class="{
+                        'active-status': vehicle.availabilityStatus === 'Available',
+                        'warning-status': vehicle.availabilityStatus === 'Assigned',
+                        'inactive-status': vehicle.availabilityStatus === 'Unavailable'
+                      }"
+                    >
+                      {{ vehicle.availabilityStatus }}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      :class="{
+                        'active-status': vehicle.maintenanceStatus === 'Good',
+                        'warning-status': vehicle.maintenanceStatus === 'Service Due',
+                        'maintenance-status': vehicle.maintenanceStatus === 'Under Maintenance'
+                      }"
+                    >
+                      {{ vehicle.maintenanceStatus }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-delete" @click="deleteVehicle(vehicle.id)">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+
+                <tr v-if="vehicles.length === 0">
+                  <td colspan="9" class="empty-text">
+                    No vehicles available.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other Placeholder Pages -->
       <div v-else class="page-panel">
         <h2>{{ activePage }}</h2>
         <p>
@@ -453,12 +772,84 @@ export default {
 
       registeredUsers: [],
 
+      routeForm: {
+        routeName: "",
+        startLocation: "",
+        endLocation: "",
+        distance: "",
+        estimatedTime: "",
+        serviceType: "",
+        status: "Active",
+      },
+
+      routes: [
+        {
+          id: 1,
+          routeName: "Colombo - Kandy",
+          startLocation: "Colombo",
+          endLocation: "Kandy",
+          distance: "115 km",
+          estimatedTime: "3h 30m",
+          serviceType: "Express",
+          status: "Active",
+        },
+        {
+          id: 2,
+          routeName: "Colombo - Galle",
+          startLocation: "Colombo",
+          endLocation: "Galle",
+          distance: "125 km",
+          estimatedTime: "2h 45m",
+          serviceType: "Normal",
+          status: "Active",
+        },
+      ],
+
+      vehicleForm: {
+        registrationNumber: "",
+        vehicleType: "",
+        seatingCapacity: "",
+        mileage: "",
+        fuelType: "",
+        availabilityStatus: "Available",
+        maintenanceStatus: "Good",
+      },
+
+      vehicles: [
+        {
+          id: 1,
+          registrationNumber: "NB-4521",
+          vehicleType: "Bus",
+          seatingCapacity: "54",
+          mileage: "125000 km",
+          fuelType: "Diesel",
+          availabilityStatus: "Available",
+          maintenanceStatus: "Good",
+        },
+        {
+          id: 2,
+          registrationNumber: "ND-7896",
+          vehicleType: "Bus",
+          seatingCapacity: "48",
+          mileage: "98000 km",
+          fuelType: "Diesel",
+          availabilityStatus: "Assigned",
+          maintenanceStatus: "Good",
+        },
+      ],
+
       message: "",
       messageType: "",
     };
   },
 
   computed: {
+    availableVehicleCount() {
+      return this.vehicles.filter(
+        (vehicle) => vehicle.availabilityStatus === "Available"
+      ).length;
+    },
+
     dashboardTitle() {
       if (this.currentUser.role === "Admin") {
         return "Admin Dashboard";
@@ -657,6 +1048,103 @@ export default {
         this.message = "User not found. Please register before login.";
         this.messageType = "message-error";
       }
+    },
+
+    saveRoute() {
+      if (
+        !this.routeForm.routeName ||
+        !this.routeForm.startLocation ||
+        !this.routeForm.endLocation ||
+        !this.routeForm.distance ||
+        !this.routeForm.estimatedTime ||
+        !this.routeForm.serviceType
+      ) {
+        alert("Please fill all route fields.");
+        return;
+      }
+
+      const newRoute = {
+        id: this.routes.length + 1,
+        routeName: this.routeForm.routeName,
+        startLocation: this.routeForm.startLocation,
+        endLocation: this.routeForm.endLocation,
+        distance: this.routeForm.distance,
+        estimatedTime: this.routeForm.estimatedTime,
+        serviceType: this.routeForm.serviceType,
+        status: this.routeForm.status,
+      };
+
+      this.routes.push(newRoute);
+      this.clearRouteForm();
+      alert("Route added successfully.");
+    },
+
+    deleteRoute(id) {
+      const confirmDelete = confirm("Are you sure you want to delete this route?");
+
+      if (confirmDelete) {
+        this.routes = this.routes.filter((route) => route.id !== id);
+      }
+    },
+
+    clearRouteForm() {
+      this.routeForm = {
+        routeName: "",
+        startLocation: "",
+        endLocation: "",
+        distance: "",
+        estimatedTime: "",
+        serviceType: "",
+        status: "Active",
+      };
+    },
+
+    saveVehicle() {
+      if (
+        !this.vehicleForm.registrationNumber ||
+        !this.vehicleForm.vehicleType ||
+        !this.vehicleForm.seatingCapacity ||
+        !this.vehicleForm.mileage ||
+        !this.vehicleForm.fuelType
+      ) {
+        alert("Please fill all vehicle fields.");
+        return;
+      }
+
+      const newVehicle = {
+        id: this.vehicles.length + 1,
+        registrationNumber: this.vehicleForm.registrationNumber,
+        vehicleType: this.vehicleForm.vehicleType,
+        seatingCapacity: this.vehicleForm.seatingCapacity,
+        mileage: this.vehicleForm.mileage,
+        fuelType: this.vehicleForm.fuelType,
+        availabilityStatus: this.vehicleForm.availabilityStatus,
+        maintenanceStatus: this.vehicleForm.maintenanceStatus,
+      };
+
+      this.vehicles.push(newVehicle);
+      this.clearVehicleForm();
+      alert("Vehicle added successfully.");
+    },
+
+    deleteVehicle(id) {
+      const confirmDelete = confirm("Are you sure you want to delete this vehicle?");
+
+      if (confirmDelete) {
+        this.vehicles = this.vehicles.filter((vehicle) => vehicle.id !== id);
+      }
+    },
+
+    clearVehicleForm() {
+      this.vehicleForm = {
+        registrationNumber: "",
+        vehicleType: "",
+        seatingCapacity: "",
+        mileage: "",
+        fuelType: "",
+        availabilityStatus: "Available",
+        maintenanceStatus: "Good",
+      };
     },
 
     logout() {
