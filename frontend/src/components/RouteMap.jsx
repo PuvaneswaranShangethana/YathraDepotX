@@ -23,7 +23,7 @@ function RouteMap({ startPoint, endPoint }) {
 
   return (
     <div>
-      <LoadScript googleMapsApiKey="AIzaSyBNePyeACZuDODVZQDlEU-Cc9QYtH7Oq_M">
+      <LoadScript googleMapsApiKey="API key">
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}
